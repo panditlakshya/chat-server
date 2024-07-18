@@ -24,11 +24,11 @@ app.get("/", (req, res) => {
 const users = new Map();
 
 io.on("connection", (socket) => {
-  //   console.log("A user connected:", socket.id);
+  const socketId = socket.id;
+  console.log("A user connected:", socketId);
   socket.on("join_room", (roomId, username) => {
     socket.join(roomId);
-    users.set(socket.id, { username, roomId });
-    // console.log(`user with id-${socket.id} joined room - ${roomId}`);
+    users.set(socketId, { username, roomId });
     io.to(roomId).emit(
       "update users",
       Array.from(users.values())
@@ -37,26 +37,33 @@ io.on("connection", (socket) => {
     );
   });
 
+  socket.on("leave_room", (room, username) => {
+    const user = users.get(socketId);
+
+    if (user && user.roomId === room) {
+      socket.leave(room);
+      users.delete(socketId);
+      const roomUsers = Array.from(users.values())
+        .filter((user) => user.roomId === room && user.username !== username)
+        .map((user) => user.username);
+      io.to(room).emit("update users", roomUsers);
+    }
+  });
+
   socket.on("send_msg", (data) => {
-    socket.to(data.roomId).emit("receive_msg", data);
+    io.to(data.roomId).emit("receive_msg", data);
   });
 
   socket.on("disconnect", () => {
-    const user = users.get(socket.id);
-    if (user) {
-      const { room } = user;
-      users.delete(socket.id);
-      updateRoomUsers(room);
-    }
-    console.log("A user disconnected:", socket.id);
+    console.log("A user disconnected:", socketId);
   });
 
-  function updateRoomUsers(room) {
-    const roomUsers = Array.from(users.values())
-      .filter((user) => user.room === room)
-      .map((user) => user.username);
-    io.to(room).emit("update users", roomUsers);
-  }
+  //   function updateRoomUsers(room) {
+  //     const roomUsers = Array.from(users.values())
+  //       .filter((user) => user.room === room)
+  //       .map((user) => user.username);
+  //     io.to(room).emit("update users", roomUsers);
+  //   }
 });
 
 // app.listen(port, () => {
