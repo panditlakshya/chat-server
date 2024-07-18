@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World Guys!");
 });
 
 const users = new Map();
