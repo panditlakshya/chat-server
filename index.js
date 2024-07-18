@@ -29,7 +29,7 @@ io.on("connection", (socket) => {
     socket.join(roomId);
     users.set(socket.id, { username, roomId });
     // console.log(`user with id-${socket.id} joined room - ${roomId}`);
-    socket.to(roomId).emit(
+    io.to(roomId).emit(
       "update users",
       Array.from(users.values())
         .filter((user) => user.roomId === roomId)
