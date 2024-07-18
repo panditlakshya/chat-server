@@ -7,6 +7,7 @@ const { Server } = require("socket.io");
 const server = createServer(app);
 
 const cors = require("cors");
+app.use(cors());
 const io = new Server(server, {
   cors: {
     origin: `${process.env.FRONTEND_URL}`, // Replace with your frontend URL
